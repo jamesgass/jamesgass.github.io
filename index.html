@@ -15,6 +15,37 @@
         nav { width: 200px; }
         main { padding-left: 20px; }
     </style>
+
+    <style>
+
+        body { 
+            display: flex; 
+            flex-direction: row; 
+            margin: 10px;
+        }
+        
+        nav { 
+            width: 200px; 
+            flex-shrink: 0;
+        }
+        
+        main { 
+            padding-left: 20px; 
+           
+            overflow-x: auto; 
+        }
+
+    
+        @media (max-width: 600px) {
+            body { 
+                flex-direction: column; 
+            }
+            main { 
+                padding-left: 0; 
+                padding-top: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Change this title for each new page so the browser tab updates -->
+    <title>New Page Title</title>
+    
+    <!-- MathJax for LaTeX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        body { display: flex; }
+        nav { width: 200px; flex-shrink: 0; } /* flex-shrink: 0 prevents the sidebar from squishing */
+        main { padding-left: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- KEEP THIS NAVIGATION EXACTLY THE SAME ON EVERY PAGE -->
+    <nav>
+        <p><b>Menu</b></p>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="mathsnotes.html">Mathematics Notes</a></li>
+            <li><a href="research.html">Research</a></li>
+            <li><a href="miscellaneous.html">Miscellaneous</a></li>
+        </ul>
+        <img src="images/dancingjesus.gif" style="max-width: 100%; height: auto;" alt="Dancing Jesus">
+    </nav>
+
+    <!-- ONLY CHANGE CONTENT BELOW THIS LINE FOR NEW PAGES -->
+    <main>
+        <h1>New Page Heading</h1>
+        
+        <p>Start typing your text and math here.</p>
+        
+        <p>Example inline math: \( x = y^2 \)</p>
+        
+    </main>
+
+</body>
+</html>

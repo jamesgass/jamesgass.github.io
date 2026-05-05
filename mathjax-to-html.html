@@ -32,20 +32,18 @@
 
     <main>
 
-<div class="latex-widget-container">
-  <h3 class="latex-widget-header">LaTeX to HTML Code Converter</h3>
+<div style="display: flex; width: 100%; gap: 20px; font-family: sans-serif;">
   
-  <div class="latex-widget-row">
-    <div class="latex-widget-col">
-      <label for="latex-widget-input">LaTeX Input</label>
-      <textarea id="latex-widget-input" spellcheck="false" placeholder="Paste your LaTeX here..."></textarea>
-    </div>
-
-    <div class="latex-widget-col">
-      <label for="latex-widget-output">HTML Output</label>
-      <textarea id="latex-widget-output" readonly placeholder="HTML code will appear here..."></textarea>
-    </div>
+  <div style="flex: 1; display: flex; flex-direction: column;">
+    <label for="plain-latex-in" style="margin-bottom: 5px; font-weight: bold;">LaTeX Input</label>
+    <textarea id="plain-latex-in" style="height: 400px; resize: vertical; padding: 8px; font-family: monospace;"></textarea>
   </div>
+
+  <div style="flex: 1; display: flex; flex-direction: column;">
+    <label for="plain-html-out" style="margin-bottom: 5px; font-weight: bold;">HTML Output</label>
+    <textarea id="plain-html-out" readonly style="height: 400px; resize: vertical; padding: 8px; font-family: monospace; background-color: #f5f5f5;"></textarea>
+  </div>
+
 </div>
 
 <script>

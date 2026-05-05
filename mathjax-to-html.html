@@ -1,1 +1,154 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <title>New Page Title</title>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        body { display: flex; }
+        nav { width: 200px; flex-shrink: 0; }
+        main { padding-left: 20px; }
+    </style>
+</head>
+<body>
+
+
+    <nav>
+        <p><b><a href="index.html">Menu</a></b></p>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="writing.html">Research and Writing</a></li>
+            <li><a href="miscellaneous.html">Miscellaneous</a></li>
+            <ul>
+                <li><a href="#tools">Tools</a></li>
+            </ul>
+        </ul>
+        <img src="images/dancingjesus.gif" style="max-width: 100%; height: auto;" alt="Dancing Jesus">
+    </nav>
+
+    <main>
+        <style>
+  /* Scoped styles to prevent messing up your site's main CSS */
+  .latex-widget-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f9f9fb;
+    border: 1px solid #e2e2e8;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-sizing: border-box;
+  }
+  .latex-widget-header {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.25rem;
+    color: #333;
+  }
+  .latex-widget-row {
+    display: flex;
+    gap: 20px;
+  }
+  /* Stacks vertically on mobile phones */
+  @media (max-width: 768px) {
+    .latex-widget-row {
+      flex-direction: column;
+    }
+  }
+  .latex-widget-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .latex-widget-col label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: #555;
+  }
+  .latex-widget-container textarea {
+    width: 100%;
+    height: 300px; /* Adjust height here if needed */
+    padding: 12px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .latex-widget-container textarea:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+  }
+  #latex-widget-output {
+    background-color: #eaeaea;
+    cursor: copy;
+  }
+</style>
+
+<div class="latex-widget-container">
+  <h3 class="latex-widget-header">LaTeX to HTML Code Converter</h3>
+  
+  <div class="latex-widget-row">
+    <!-- Input Box -->
+    <div class="latex-widget-col">
+      <label for="latex-widget-input">LaTeX Input</label>
+      <textarea id="latex-widget-input" spellcheck="false" placeholder="Paste your LaTeX here..."></textarea>
+    </div>
+
+    <!-- Output Box -->
+    <div class="latex-widget-col">
+      <label for="latex-widget-output">HTML Output</label>
+      <textarea id="latex-widget-output" readonly placeholder="HTML code will appear here..."></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+  // We wrap the JS in an IIFE (Immediately Invoked Function Expression) 
+  // so the variables don't conflict with any other scripts on your site.
+  (function() {
+    const inputArea = document.getElementById('latex-widget-input');
+    const outputArea = document.getElementById('latex-widget-output');
+
+    function convertLatexToHtmlCode(text) {
+        if (!text.trim()) return '';
+        let html = text;
+
+        // 1. Headers
+        html = html.replace(/\\section\{([^}]+)\}/g, '<h2>$1</h2>');
+        html = html.replace(/\\subsection\{([^}]+)\}/g, '<h3>$1</h3>');
+
+        // 2. Formatting
+        html = html.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
+        html = html.replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>');
+        html = html.replace(/\\underline\{([^}]+)\}/g, '<u>$1</u>');
+
+        // 3. Paragraphs
+        let paragraphs = html.split(/\n\n+/);
+        html = paragraphs.map(p => {
+            let trimmed = p.trim();
+            if (trimmed.startsWith('<h')) return trimmed; // Don't wrap headers
+            trimmed = trimmed.replace(/\n/g, '<br>\n'); // Keep single line breaks
+            return `<p>\n  ${trimmed}\n</p>`;
+        }).join('\n\n');
+
+        return html;
+    }
+
+    // Run conversion when typing or pasting
+    inputArea.addEventListener('input', () => {
+        outputArea.value = convertLatexToHtmlCode(inputArea.value);
+    });
+  })();
+</script>
+    </main>
+
+</body>
+</html>

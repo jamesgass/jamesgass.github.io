@@ -8,15 +8,14 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
-        /* Removed flex from body, applied it to the secure wrapper instead */
+
         body { margin: 0; padding: 0; }
         
-        /* This hides the content initially */
+
         #secure-content { 
             display: none; 
         }
-        
-        /* When authorized, we apply the flex layout you originally had on the body */
+       
         #secure-content.authorized {
             display: flex;
         }
@@ -28,19 +27,18 @@
 <body>
 
     <script>
-        // Set your password here
+
         const correctPassword = "eulermascheroni"; 
 
-        // Prompt the user
         let userPassword = prompt("Please enter the password to view this page:");
 
         if (userPassword === correctPassword) {
-            // If correct, wait for the page to load, then show the content
+
             document.addEventListener("DOMContentLoaded", function() {
                 document.getElementById("secure-content").classList.add("authorized");
             });
         } else {
-            // If incorrect, replace the whole page with an error message
+  
             document.write("<h2 style='font-family: sans-serif; padding: 20px;'>Access Denied. Reload the page to try again.</h2>");
         }
     </script>
@@ -58,7 +56,10 @@
         </nav>
 
         <main>
-            <h1>Class Field Theory</h1>
+           <a href="audio/The Culprits - ....REMEMBER the birds.zip" download="The-Culprits"></a> <h1>The Culprits - ....REMEMBER the birds?</h1></a>
+
+            <img src="images/the-culprits-cover.jpg" style="max-width: 100%; height: auto;">
+
         </main>
     </div>
 

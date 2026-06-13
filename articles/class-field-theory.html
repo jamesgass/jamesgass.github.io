@@ -1,402 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-
     <title>Class Field Theory</title>
-    <meta name="viewport" content="device-width, initial-scale=1.0">
-<script>
-window.MathJax = {
-  tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']],
-    
-    // Here is where your global \newcommand definitions live
-    macros: {
-      // Simple variables: \newcommand*\pFqskip{8mu}
-      pFqskip: "8mu",
-      pHqskip: "8mu",
-      
-      // Complex commands with arguments: 
-      // The array format is ["LaTeX Replacement String", number_of_arguments]
-      
-      // Translates your \dopFq macro
-      pFq: ["{}_{#1}F_{#2}\\biggl[\\genfrac..{0pt}{}{#3}{#4};#5\\biggr]", 5],
-      
-      // Translates your \dopHq macro
-      pHq: ["H_{#1}\\biggl[\\genfrac..{0pt}{}{#2}{#3};#4\\biggr]", 4],
-      
-      // Standard mathematical sets (often from amsfonts)
-      N: "\\mathbb{N}",
-      Z: "\\mathbb{Z}",
-      R: "\\mathbb{R}",
-      h: "\\mathbb{H}",
-      F: "\\mathbb{F}",
-      Q: "\\mathbb{Q}",
-      A: "\\mathbb{A}",
-      C: "\\mathbb{C}",
-      PP: "\\mathbb{P}",
-      
-      // Fraktur fonts
-      p: "\\mathfrak{p}",
-      q: "\\mathfrak{q}",
-      fraka: "\\mathfrak{a}",
-      frakb: "\\mathfrak{b}",
-      
-      // Math Operators (replaces \DeclareMathOperator)
-      End: "\\operatorname{End}",
-      Mat: "\\operatorname{Mat}",
-      ext: "\\,\\vert\\,",
-      Hom: "\\operatorname{Hom}",
-      Aut: "\\operatorname{Aut}",
-      Tr: "\\operatorname{Tr}",
-      Gal: "\\operatorname{Gal}",
-      nm: "\\operatorname{Nm}",
-      frob: "\\operatorname{Frob}",
-      lcm: "\\operatorname{lcm}",
-      Pl: "\\operatorname{Pl}"
-    }
-  }
-};
-</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- 2. Load the MathJax Engine -->
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
-        body { display: flex; }
+        /* Removed flex from body, applied it to the secure wrapper instead */
+        body { margin: 0; padding: 0; }
+        
+        /* This hides the content initially */
+        #secure-content { 
+            display: none; 
+        }
+        
+        /* When authorized, we apply the flex layout you originally had on the body */
+        #secure-content.authorized {
+            display: flex;
+        }
+
         nav { width: 200px; flex-shrink: 0; }
         main { padding-left: 20px; }
     </style>
 </head>
 <body>
 
-    <nav>
-        <p><b><a href="index.html">Menu</a></b></p>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="writing.html">Research and Writing</a></li>
-            <li><a href="teaching-events.html">Teaching</a></li>
-            <li><a href="miscellaneous.html">Miscellaneous</a></li>
-        </ul>
-        <img src="images/dancingjesus.gif" style="max-width: 100%; height: auto;" alt="Dancing Jesus">
-    </nav>
+    <script>
+        // Set your password here
+        const correctPassword = "eulermascheroni"; 
 
-    <main>
-        <h1>Class Field Theory</h1>
+        // Prompt the user
+        let userPassword = prompt("Please enter the password to view this page:");
 
-      <p>
-  \title{Exploring Class Field Theory}<br>
-\author{James Gass}<br>
-\date{March 2026}
-</p>
+        if (userPassword === correctPassword) {
+            // If correct, wait for the page to load, then show the content
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("secure-content").classList.add("authorized");
+            });
+        } else {
+            // If incorrect, replace the whole page with an error message
+            document.write("<h2 style='font-family: sans-serif; padding: 20px;'>Access Denied. Reload the page to try again.</h2>");
+        }
+    </script>
 
-<p>
-  \begin{document}
-</p>
+    <div id="secure-content">
+        <nav>
+            <p><b><a href="index.html">Menu</a></b></p>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="writing.html">Research and Writing</a></li>
+                <li><a href="teaching-events.html">Teaching</a></li>
+                <li><a href="miscellaneous.html">Miscellaneous</a></li>
+            </ul>
+            <img src="images/dancingjesus.gif" style="max-width: 100%; height: auto;" alt="Dancing Jesus">
+        </nav>
 
-<p>
-  \maketitle<br>
-\tableofcontents
-</p>
-
-<h2>Characters and Primes in Arithmetic Progression</h2>
-<h3>Dirichlet Characters</h3>
-This section follows Chapter 2 of Nancy Childress' textbook on Class Field Theory \cite[p.17-40]{childress2008class}.
-
-<p>
-  \begin{Definition}<br>
-    Let $G$ be a group. A (unitary) character of a group is a homomorphism $\chi: G \to \C^1$. Depending on whether $G$ is written multiplicatively or additively, we say that $\chi$ is a multiplicative or additive character respectively.<br>
-\end{Definition}
-</p>
-
-<p>
-  \begin{Definition}<br>
-    We say that $\chi: \Z \to \C^1$ is a Dirichlet character (modulo $m$) if there exists $m \in \Z_{\geq 1}$ such that $\chi$ satisfies the following properties:<br>
-    \begin{enumerate}<br>
-        \item $\chi(n+m) = \chi(n) \text{ for all } n \in \Z$;<br>
-        \item $\chi(kn) = \chi(k)\chi(n) \text{ for all } k,n \in \Z$;<br>
-        \item $\chi(n) \neq 0$ if and only if $\gcd(m,n) = 1$.<br>
-    \end{enumerate}<br>
-\end{Definition}
-</p>
-
-<p>
-  We can compute some examples of Dirichlet characters in Magma.
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-> Elements(FullDirichletGroup(5));<br>
-[<br>
-    1,<br>
-    $.1,<br>
-    Kronecker character 5,<br>
-    $.1^3<br>
-]<br>
-\end{lstlisting}
-</p>
-
-<p>
-  We can evaluate these characters at $r \in (\Z/5<br>
-\Z)^\times$
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-for chi in Elements(FullDirichletGroup(5)) do<br>
-  print "Dirichlet Character", chi;<br>
-  for r in [0..4] do<br>
-    chi(r);<br>
-  end for;<br>
-end for;<br>
-\end{lstlisting}
-</p>
-
-<p>
-  thus yielding the following.
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-Dirichlet Character 1<br>
-0<br>
-1<br>
-1<br>
-1<br>
-1<br>
-Dirichlet Character $.1<br>
-0<br>
-1<br>
-zeta_4<br>
--zeta_4<br>
--1<br>
-Dirichlet Character Kronecker character 5<br>
-0<br>
-1<br>
--1<br>
--1<br>
-1<br>
-Dirichlet Character $.1^3<br>
-0<br>
-1<br>
--zeta_4<br>
-zeta_4<br>
--1<br>
-\end{lstlisting}
-</p>
-
-<p>
-  The multiplication of Dirichlet characters can be defined in the following way. Let $\chi:(\Z/f_\chi\Z)^\times \to \C^1$ and $\psi:(\Z/f_\psi\Z)^\times \to \C^1$ be Dirichlet characters defined on their conductors, and $n = \text{lcm}(f_\chi,f_\psi)$. Then, it is clear that $\mu: (\Z/n\Z)^\times \to \C^1$, given by \[<br>
-\mu(a) = \chi(a)\psi(a)<br>
-\]<br>
-is a (potentially imprimitive) Dirichlet character. Defining the product $\chi\psi$ to be the primitive Dirichlet character which induces $\mu$ then allows us to define a multiplication on primitive Dirichlet characters.
-</p>
-
-<p>
-  We recall that, if $n | m$, then we have the natural homomorphism $\alpha:(\Z/m\Z)^\times \to (\Z/n\Z)^\times$, $a \mod m \mapsto a \mod n$. If $\chi:(\Z/n\Z)^\times \to \C^1$ is a Dirichlet character modulo $n$, then equally $\chi' = \chi \circ \alpha$ is a Dirichlet character modulo $m$. In this case, $\chi'$ is <em>induced</em> by $\chi$.
-</p>
-
-<p>
-  \begin{Definition}[The Conductor of a Dirichlet Character]<br>
-The conductor $f_\chi$ of a Dirichlet character $\chi$ is the minimal modulus for which it can be defined. If $\chi$ is defined modulo $f_\chi$, then it is said to be primitive.<br>
-\end{Definition}
-</p>
-
-<p>
-  \begin{exercise}<br>
-    If $(f_\chi, f_\psi) = 1$ then $f_{\chi\psi} = f_\chi f_\psi$.<br>
-\end{exercise}<br>
- \begin{solution}<br>
-    Note that $\lcm(f_\chi,f_\psi) = f_\chi f_\psi$ as $(f_\chi, f_\psi) = 1$. Then, it is clear that $f_{\chi\psi} \mid f_\chi f_\psi$. Now, note that $\chi(n) = \chi\psi(rn - (1-r))$ where $r \equiv 1 \mod{f_\chi}$ and $r \equiv 0 \mod{f_\psi}$. Thus, if $\chi\psi$ is $m$-periodic, the same is true of $\chi$, meaning that its least period divides the conductor of $\chi\psi$. Applying the same argument to $\psi$ allows us to conclude that $f_\chi f_\psi \mid f_{\chi\psi}$ and thus $f_\chi f_\psi = f_{\chi\psi}$.<br>
-\end{solution}
-</p>
-
-<p>
-  \begin{Example}<br>
-  The above exercise can be observed in Magma in the following way.
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-D5:=FullDirichletGroup(5);<br>
-D7 := FullDirichletGroup(7);<br>
-D15 := FullDirichletGroup(15);<br>
-chi5 := Random(D5);<br>
-chi7 := Random(D7);<br>
-chi15 := Random(D15);  <br>
-\end{lstlisting}
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-> chi5;<br>
-$.1^3<br>
-> chi7;<br>
-$.1^2<br>
-> chi15;<br>
-Kronecker character -15<br>
-> Conductor(chi15*chi5);<br>
-15<br>
-> Conductor(chi15)*Conductor(chi5);<br>
-75<br>
-> Conductor(chi5)*Conductor(chi7); <br>
-35<br>
-> Conductor(chi7*chi5);            <br>
-35
-</p>
-
-<p>
-  \end{lstlisting}<br>
-\end{Example}
-</p>
-
-<p>
-  In order to create a (multiplicative) group structure on the (primitive) Dirichlet characters, to every $\chi:(\Z/n\Z)^\times \to \C^1$ we associate $\overline{\chi}:(\Z/n\Z)^\times \to \C^1$, where $\overline{\chi}(n) = \chi(n)^{-1}$. Clearly, $\overline{\chi}$ is a Dirichlet character of the same conductor ($f_{\overline{\chi}} = f_\chi$) and $\chi\overline{\chi} = \varepsilon$, where $\varepsilon$ is the identity character.
-</p>
-
-<p>
-  Thus, the primitive Dirichlet characters form a multiplicative group. In general, if $G$ is a group, the associated group of characters will be denoted by $\widehat{G}$. There are a couple of notes to make before exploring an analogue of the Galois correspondence using Dirichlet characters.<br>
-\begin{itemize}<br>
-    \item The order of a Dirichlet character is its order within $\widehat{(\Z/n/\Z)^\times}$. Indeed, the order of $\chi \in \widehat{(\Z/n/\Z)^\times}$ is finite as $\text{im}(\chi)$ is a finite group of roots of unity. The order of $\chi$ is a divisor of $\varphi(f_\chi)$.<br>
-\item If $\text{ord}(\chi) = 2$, this is often called a <em>quadratic</em> Dirichlet character.<br>
-\item For any $\chi \in \widehat{(\Z/n/\Z)^\times}$, given $\chi(-1)^2 = \chi((-1)^2) = \chi(1) = 1$, we must have $\chi(-1) = \pm 1$. In the case where $\chi(-1) = -1$, we say that $\chi$ is odd. Similarly, $\chi$ is even when $\chi(-1) = 1$.
-</p>
-
-<p>
-  \end{itemize}
-</p>
-
-<p>
-  \begin{exercise}<br>
-    Show that $X := \{\chi \in \widehat{(\Z/n/\Z)^\times} : \chi \text{ even}\} \leq \widehat{(\Z/n/\Z)^\times}$. <br>
-    \end{exercise}<br>
-    \begin{solution}<br>
-        Given $X \subseteq \widehat{(\Z/n/\Z)^\times}$, take $\chi, \psi \in X$ and $m \in (\Z/n \Z)^\times$. Then, $\left(\chi \psi^{-1}\right)(m) = \chi(m)\overline{\psi(m)}$. Letting $m \equiv -1 \mod{n}$, $\chi(-1)\overline{\psi(-1)} = (1) \overline{(1)} = 1$, meaning that $\chi\psi^{-1} \in X$ and hence $X \leq \widehat{(\Z/n/\Z)^\times}$.<br>
-    \end{solution}
-</p>
-
-<h3>Galois Correspondence</h3>
-Given the isomorphism of the groups $(\Z / n \Z)^\times \cong \Gal(\Q(\zeta_n) | \Q)$, we can identify the Dirichlet characters $\widehat{(\Z / n \Z)^\times}$ with $\widehat{\Gal(\Q(\zeta_n) | \Q)}$. As such, for the rest of this section we will denote the group of Dirichlet characters as $\widehat{G}$, where $G$ refers to both $(\Z/n\Z)^\times$ and $\Gal(\Q(\zeta_n) | \Q)$.
-
-<p>
-  \begin{Definition}[Field of Moduli of a Dirichlet Character]\label{def:dirichlet_field_of_moduli}<br>
-  Given a Dirichlet character $\chi: G \to \C^1$, we say that $K_\chi := \Q(\zeta_n)^{\ker(\chi)}$ is the <em>field of moduli</em> of $\chi$ (or the field associated with $\chi$). <br>
-\end{Definition}
-</p>
-
-<p>
-  \begin{Remark}<br>
-    Equivalently, Definition \ref{def:dirichlet_field_of_moduli} can be thought of in the following way. Let $H \leq G$ be the subgroup of all automorphisms $\sigma \in G$ satisfying $\chi(\sigma\tau) = \chi(\tau)$ for all $\tau \in G$. Then, $K_\chi = \Q(\zeta_n)^H$.<br>
-\end{Remark}
-</p>
-
-<p>
-  \begin{Example}<br>
-Here, we let $\chi \in$ \lstinline|FullDirichletGroup(15)| be as the previous example. We see that:
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-for n in [0..14] do   <br>
-  print "n =", n;       <br>
-  print "chi15(n) =", chi15(n);<br>
-end for;                     <br>
-\end{lstlisting}
-</p>
-
-<p>
-  yields $\chi(n) =1$ for $n \equiv 1,2,4,8 \in (\Z / 15 \Z)^\times$. Then,
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-K<z> := CyclotomicField(15);                          <br>
-H_auts := [ hom< K -> K | z^k > : k in [1, 2, 4, 8] ];<br>
-FixedField(K, H_auts);<br>
-\end{lstlisting}
-</p>
-
-<p>
-  tells us that $K_\chi = \Q(\zeta_{15})^{\{id, \sigma_2, \sigma_4, \sigma_8\}} = \Q(\sqrt{-15})$.
-</p>
-
-<p>
-  \end{Example}
-</p>
-
-<p>
-  \begin{Example}<br>
-    In this example, we consider the characters over $\Q(\zeta_n)$ and $X \subseteq \widehat{G}$ the subset of even characters. A previous exercise showed that this is also a subgroup. Indeed, $\sigma_{-1} \in G$ acts as complex conjugation, and $\chi(\sigma_{-1}) = \chi(-1) = 1$ should indicate that the field $K$ associated to $X$ is real.
-</p>
-
-<p>
-  The previous observation indicates that $\{\text{id}, \sigma_{-1}\} \subseteq \bigcap_{\chi \in X}\ker \chi$. Assuming for now that the opposite inclusion is true, we compute some of the associated fields to $X$.
-</p>
-
-<p>
-  \begin{lstlisting}<br>
-for n in [3, 5, 9, 14] do                        <br>
-  print "n =", n;                                  <br>
-  K<z> := CyclotomicField(n);                      <br>
-  H_auts := [ hom< K -> K | z^k > : k in [1,n-1] ];<br>
-  K:=FixedField(K, H_auts);                        <br>
-  K;<br>
-  Signature(K);<br>
-end for;<br>
-\end{lstlisting}
-</p>
-
-<p>
-  Here, \lstinline|Signature(K)| refers to the real and complex embeddings. The output indicates <br>
-\begin{lstlisting}<br>
-n = 3<br>
-Rational Field<br>
-1 0<br>
-n = 5<br>
-Number Field with defining polynomial $.1^2 - $.1 - 1 over the Rational Field<br>
-2 0<br>
-n = 9<br>
-Number Field with defining polynomial $.1^3 - 3*$.1^2 + 1 over the Rational Field<br>
-3 0<br>
-n = 14<br>
-Number Field with defining polynomial $.1^3 - 4*$.1^2 + 3*$.1 + 1 over the Rational Field<br>
-3 0<br>
-\end{lstlisting}<br>
-    that each of the fields are indeed real.
-</p>
-
-<p>
-  We will now show that $ \bigcap_{\chi \in X}\ker \chi \subseteq  \{\text{id}, \sigma_{-1}\}$. Take $\sigma_r \in \bigcap_{\chi \in X}\ker \chi$. Under the canonical isomorphism $G \to \widehat{\widehat{G}}$ \footnote{Assuming that $\Psi:G \to \widehat{\widehat{G}}$, given by $x \mapsto \Tilde{x}$ where $\Tilde{x}: \widehat{G} \to \C^1$ maps $\chi \overset{\Tilde{x}}{\mapsto}\chi(x)$, is a homomorphism, we demonstrate injectivity by first supposing that there is a $g \in G$ satisfyng $\chi(g) = 1$ for all $\chi \in \widehat{G}$. Then, we may view the <em>distinct</em> characters of $\widehat{G}$ as those of $G / \langle g \rangle$. Then, there are $\# G / \langle g \rangle$ such characters. This tells us that $\# \langle g \rangle = 1$ and the only such $g \in G$ is $g=1$. Thus, $\Psi$ is injective and given $\#G = \#\widehat{\widehat{G}}$, $\Psi$ must also be an isomorphism.}.<br>
-\end{Example}
-</p>
-
-<p>
-  \newpage
-</p>
-
-<p>
-  \cleardoublepage <br>
-\phantomsection  <br>
-\addcontentsline{toc}{section}{Solutions} <br>
-\printsolutions
-</p>
-
-<p>
-  \newpage<br>
-\section*{References}<br>
-\bibliographystyle{apalike}<br>
-\bibliography{refs}<br>
-\nocite{*}
-</p>
-
-<p>
-  \end{document}
-</p>
-      
-    </main>
+        <main>
+            <h1>Class Field Theory</h1>
+        </main>
+    </div>
 
 </body>
 </html>

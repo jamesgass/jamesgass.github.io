@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Radio James</title>
+<style>
+  :root {
+    --bg: #09090b; --panel: #18181b; --panel2: #27272a; --border: #3f3f46;
+    --text: #fafafa; --muted: #a1a1aa; --muted2: #71717a;
+    --amber: #f59e0b; --amber-soft: #fbbf2422; --teal: #2dd4bf; --rose: #f43f5e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select { font-family: inherit; }
+  .icon { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+  .icon-fill { fill: currentColor; }
+
+  header { border-bottom: 1px solid var(--border); padding: 16px 20px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  .header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  h1 { font-size: 20px; letter-spacing: 2px; color: var(--amber); margin: 0; text-transform: uppercase; }
+  .sub { font-size: 12px; color: var(--muted2); margin: 2px 0 0; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; border: 1px solid transparent; padding: 7px 12px; font-size: 13px; font-weight: 500; }
+  .btn-amber { background: var(--amber); color: #18181b; }
+  .btn-amber:hover { background: #fbbf24; }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--muted); }
+  .btn-ghost:hover { color: var(--text); border-color: #52525b; }
+  .btn-icon { padding: 7px; border-radius: 999px; background: transparent; border: none; color: var(--muted); }
+  .btn-icon:hover { color: var(--text); }
+
+  .tabs { display: flex; gap: 4px; margin-top: 12px; }
+  .tab { padding: 6px 12px; font-size: 13px; border-radius: 7px; border: none; background: transparent; color: var(--muted); }
+  .tab.active { background: var(--panel2); color: var(--text); }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+  .search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 320px; }
+  .search-wrap .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted2); }
+  .search-wrap input { width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: 7px; padding: 7px 10px 7px 32px; color: var(--text); font-size: 13px; }
+  .search-wrap input::placeholder { color: var(--muted2); }
+  select.genre { background: var(--panel); border: 1px solid var(--border); border-radius: 7px; color: var(--muted); font-size: 13px; padding: 7px 8px; }
+  .count { font-size: 12px; color: var(--muted2); font-family: ui-monospace, monospace; margin-left: auto; }
+  .import-msg { font-size: 12px; color: var(--teal); margin-top: 8px; }
+
+  main { padding: 20px; padding-bottom: 100px; min-height: 60vh; }
+  .empty { text-align: center; margin-top: 70px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .empty .icon { width: 40px; height: 40px; color: #3f3f46; }
+  .empty p.lead { color: #d4d4d8; font-weight: 500; margin: 0; }
+  .empty p.desc { font-size: 13px; color: var(--muted2); max-width: 320px; margin: 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+  .card { position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color .15s; }
+  .card.current { border-color: var(--amber); }
+  .card .art-wrap { aspect-ratio: 1; width: 100%; position: relative; background: var(--panel2); }
+  .card .art-wrap.pulsing { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+  .card img.art { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .avatar { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fafafa; letter-spacing: .5px; }
+  .play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; }
+  .card:hover .play-overlay, .card.current .play-overlay { opacity: 1; }
+  .play-overlay .icon { width: 26px; height: 26px; color: #fff; }
+  .card.current .play-overlay .icon { color: var(--amber); }
+  .card-body { padding: 10px; }
+  .card-name { font-size: 13px; font-weight: 600; color: #f4f4f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-group { font-size: 11px; color: var(--teal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .card-btn { position: absolute; padding: 5px; border-radius: 999px; background: rgba(0,0,0,.55); border: none; color: #e4e4e7; opacity: 0; transition: opacity .15s; }
+  .card:hover .card-btn { opacity: 1; }
+  .card-btn:hover { background: rgba(0,0,0,.75); }
+  .card-btn.fav-on { opacity: 1; color: var(--amber); }
+  .card-btn.fav { top: 6px; right: 6px; }
+  .card-btn.remove { top: 6px; left: 6px; }
+  .card-btn.remove:hover { background: rgba(244,63,94,.8); }
+  .card-btn.retry { bottom: 48px; right: 6px; }
+  .card-btn.upload-logo { bottom: 48px; left: 6px; }
+  .card-btn .icon { width: 14px; height: 14px; }
+
+  .liked-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .liked-card { display: flex; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px; align-items: center; }
+  .liked-card img { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--panel2); }
+  .liked-info { min-width: 0; flex: 1; }
+  .liked-title { font-size: 13px; font-weight: 600; color: #f4f4f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .liked-artist { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .liked-meta { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+  .liked-remove { color: var(--muted2); background: none; border: none; padding: 4px; border-radius: 999px; flex-shrink: 0; }
+  .liked-remove:hover { color: var(--rose); }
+
+  .player { position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); border-top: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 12px; z-index: 20; }
+  .player img.art, .player .avatar { width: 42px; height: 42px; border-radius: 7px; flex-shrink: 0; }
+  .player .info { min-width: 0; flex: 1; }
+  .player .name { font-size: 13px; font-weight: 600; color: #f4f4f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player .status { font-size: 11px; color: var(--muted2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player .status.error { color: var(--rose); }
+  .eq { display: flex; align-items: flex-end; gap: 2px; height: 16px; width: 16px; flex-shrink: 0; }
+  .eq span { width: 3px; height: 16px; background: var(--amber); border-radius: 2px; transform-origin: bottom; animation: eqbar .9s ease-in-out infinite; }
+  .player .play-btn { background: var(--amber); color: #18181b; border: none; border-radius: 999px; padding: 8px; flex-shrink: 0; }
+  .player .play-btn:hover { background: #fbbf24; }
+  .player .play-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .player input[type=range] { width: 80px; accent-color: var(--amber); }
+  @keyframes eqbar { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+  .id-btn { background: var(--panel2); color: var(--teal); border: 1px solid var(--border); border-radius: 999px; padding: 8px; flex-shrink: 0; position: relative; }
+  .id-btn:hover { border-color: var(--teal); }
+  .id-btn.listening { color: var(--amber); border-color: var(--amber); animation: idpulse 1s ease-in-out infinite; }
+  @keyframes idpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.4);} 50% { box-shadow: 0 0 0 6px rgba(245,158,11,0);} }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 22px; max-width: 360px; width: 100%; position: relative; }
+  .modal .close { position: absolute; top: 10px; right: 10px; }
+  .modal h2 { font-size: 14px; color: var(--muted); margin: 0 0 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .modal-art { width: 100%; aspect-ratio: 1; border-radius: 10px; object-fit: cover; background: var(--panel2); margin-bottom: 14px; }
+  .modal-title { font-size: 17px; font-weight: 700; color: #fff; }
+  .modal-artist { font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+
+  .settings-field { margin-bottom: 14px; }
+  .settings-field label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; }
+  .settings-field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; color: var(--text); font-size: 13px; }
+  .settings-help { font-size: 11px; color: var(--muted2); margin-top: 6px; line-height: 1.5; }
+  .settings-help a { color: var(--teal); }
+
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 60; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div>
+      <h1>Radio James</h1>
+      <p class="sub">Import M3U playlists, tune in, and catch the song.</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="btn btn-amber" id="importBtn">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import M3U
+      </button>
+      <input type="file" id="fileInput" accept=".m3u,.m3u8,.txt" multiple class="hidden" />
+      <input type="file" id="logoFileInput" accept="image/*" class="hidden" />
+      <button class="btn-icon" id="settingsBtn" title="Song ID settings">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="btn btn-ghost hidden" id="clearBtn">Clear library</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="library">Library</button>
+    <button class="tab" data-tab="liked">Liked Songs <span id="likedCount" style="color:var(--muted2)"></span></button>
+  </div>
+
+  <div class="toolbar" id="libraryToolbar">
+    <div class="search-wrap">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search stations" />
+    </div>
+    <select class="genre" id="genreFilter"><option value="All">All genres</option></select>
+    <span class="count" id="stationCount"></span>
+  </div>
+  <p class="import-msg hidden" id="importMsg"></p>
+</header>
+
+<main>
+  <div id="libraryView">
+    <div class="empty hidden" id="emptyState">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>
+      <p class="lead">No stations yet</p>
+      <p class="desc">Import an M3U playlist to fill your library. Missing cover art is looked up automatically.</p>
+      <button class="btn btn-amber" id="emptyImportBtn" style="margin-top:6px;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import M3U
+      </button>
+    </div>
+    <div class="grid hidden" id="stationGrid"></div>
+    <p class="hidden" id="noMatch" style="text-align:center; color:var(--muted2); margin-top:40px; font-size:13px;">No stations match your search.</p>
+  </div>
+
+  <div id="likedView" class="hidden">
+    <div class="empty" id="likedEmpty">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg>
+      <p class="lead">No liked songs yet</p>
+      <p class="desc">Tap the Shazam-style button while a station is playing to identify a song, then heart it to save it here.</p>
+    </div>
+    <div class="liked-grid hidden" id="likedGrid"></div>
+  </div>
+</main>
+
+<div class="player hidden" id="player">
+  <div id="playerArt"></div>
+  <div class="info">
+    <div class="name" id="playerName"></div>
+    <div class="status" id="playerStatus"></div>
+  </div>
+  <div class="eq hidden" id="eq">
+    <span style="animation-delay:0ms"></span><span style="animation-delay:150ms"></span><span style="animation-delay:300ms"></span>
+  </div>
+  <button class="id-btn" id="identifyBtn" title="Identify this song">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+  </button>
+  <button class="play-btn" id="playBtn">
+    <svg class="icon icon-fill" viewBox="0 0 24 24" id="playIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  </button>
+  <button class="btn-icon" id="muteBtn">
+    <svg class="icon" viewBox="0 0 24 24" id="volIcon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+  </button>
+  <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8" />
+  <button class="btn-icon" id="stopBtn">
+    <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<audio id="audio" crossorigin="anonymous"></audio>
+
+<div class="modal-bg hidden" id="settingsModal">
+  <div class="modal">
+    <button class="btn-icon close" id="closeSettings"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <h2>Song ID settings</h2>
+    <div class="settings-field">
+      <label>AudD.io API token</label>
+      <input type="text" id="auddToken" placeholder="Paste your token here" />
+    </div>
+    <p class="settings-help">
+      Song identification uses <a href="https://audd.io" target="_blank">AudD.io</a>'s recognition API. Create a free account there to get an API token (free tier includes a trial quota of requests). Paste it above — it's stored only in your browser.
+    </p>
+    <button class="btn btn-amber" id="saveSettings" style="width:100%; justify-content:center; margin-top:6px;">Save</button>
+    <hr style="border:none; border-top:1px solid var(--border); margin:18px 0;" />
+    <div class="settings-field">
+      <label>Backup your library</label>
+      <p class="settings-help" style="margin-top:0;">Your stations and liked songs live in this browser only — they won't sync between devices, and on iPhone, storage tied to a home-screen app can occasionally get cleared. Download a backup now and then so you can restore it if that happens.</p>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-ghost" id="exportBtn" style="flex:1; justify-content:center;">Export backup</button>
+        <button class="btn btn-ghost" id="importBackupBtn" style="flex:1; justify-content:center;">Import backup</button>
+      </div>
+      <input type="file" id="backupFileInput" accept=".json" class="hidden" />
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="resultModal">
+  <div class="modal">
+    <button class="btn-icon close" id="closeResult"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <h2 id="resultHeading">Song identified</h2>
+    <img class="modal-art hidden" id="resultArt" />
+    <div id="resultArtWrap"></div>
+    <div class="modal-title" id="resultTitle"></div>
+    <div class="modal-artist" id="resultArtist"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="resultDismiss" style="justify-content:center;">Dismiss</button>
+      <button class="btn btn-amber" id="resultHeart">
+        <svg class="icon icon-fill" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg>
+        Heart it
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---------- storage ----------
+  const STORE_KEY = 'wavelength_stations_v1';
+  const LIKED_KEY = 'wavelength_liked_v1';
+  const TOKEN_KEY = 'wavelength_audd_token_v1';
+
+  function loadStations() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { return []; } }
+  function saveStations(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+  function loadLiked() { try { return JSON.parse(localStorage.getItem(LIKED_KEY)) || []; } catch { return []; } }
+  function saveLiked(l) { localStorage.setItem(LIKED_KEY, JSON.stringify(l)); }
+  function loadToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+  function saveToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+
+  // ---------- state ----------
+  let stations = loadStations();
+  let liked = loadLiked();
+  let current = null;
+  let isPlaying = false;
+  let isLoadingStream = false;
+  let streamError = null;
+  let imgErrors = new Set();
+  let search = '';
+  let genreFilter = 'All';
+  let confirmClear = false;
+  let activeTab = 'library';
+  let isIdentifying = false;
+
+  // ---------- helpers ----------
+  const AVATAR_COLORS = ['#d97706','#0d9488','#0284c7','#e11d48','#059669','#4f46e5','#c026d3','#ea580c'];
+  function hashString(str) { let h = 5381; for (let i=0;i<str.length;i++) h = ((h<<5)+h+str.charCodeAt(i))|0; return 'st_'+Math.abs(h).toString(36); }
+  function hostnameOf(url) { try { return new URL(url).hostname.replace(/^www\./,'').toLowerCase(); } catch { return ''; } }
+  function urlToName(url) { try { const u=new URL(url); const last=u.pathname.split('/').filter(Boolean).pop(); return last?decodeURIComponent(last).replace(/\.[a-zA-Z0-9]+$/,''):u.hostname; } catch { return 'Untitled station'; } }
+  function avatarColor(id) { let sum=0; for (let i=0;i<id.length;i++) sum+=id.charCodeAt(i); return AVATAR_COLORS[sum % AVATAR_COLORS.length]; }
+  function initials(name) { const w=(name||'').trim().split(/\s+/).filter(Boolean); if(!w.length) return '?'; if(w.length===1) return w[0].slice(0,2).toUpperCase(); return (w[0][0]+w[1][0]).toUpperCase(); }
+  function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // Cover-art fallback for a song (used in Liked Songs + the identify-result modal)
+  // when AudD didn't return artwork, or the artwork URL fails to load.
+  function songCoverHtml(item, sizeStyle) {
+    const key = (item.title || '') + '|' + (item.artist || '');
+    const id = hashString(key || 'song');
+    const style = sizeStyle || '';
+    if (item.artwork) {
+      return `<img src="${escapeHtml(item.artwork)}" style="${style}" onerror="this.outerHTML=window.__wlSongAvatar('${escapeHtml(key).replace(/'/g,"\\'")}','${escapeHtml(item.title||'?')}','${style}')" />`;
+    }
+    return window.__wlSongAvatar(key, item.title || '?', style);
+  }
+  window.__wlSongAvatar = function(key, title, style) {
+    const id = hashString(key || 'song');
+    return `<div style="${style};display:flex;align-items:center;justify-content:center;background:${avatarColor(id)};color:#fafafa;font-weight:700;letter-spacing:.5px;">${initials(title)}</div>`;
+  };
+
+  function parseM3U(text) {
+    const lines = text.split(/\r?\n/);
+    const out = [];
+    let cur = null;
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line) continue;
+      if (line.toUpperCase().startsWith('#EXTM3U')) continue;
+      if (line.toUpperCase().startsWith('#EXTINF')) {
+        const infoMatch = line.match(/^#EXTINF:-?\d+\.?\d*\s*(.*)$/i);
+        const rest = infoMatch ? infoMatch[1] : '';
+        const commaIdx = rest.indexOf(',');
+        const attrsPart = commaIdx !== -1 ? rest.slice(0, commaIdx) : '';
+        const titlePart = commaIdx !== -1 ? rest.slice(commaIdx+1).trim() : rest.trim();
+        const attrs = {};
+        const re = /([a-zA-Z0-9_-]+)\s*=\s*"([^"]*)"/g;
+        let m;
+        while ((m = re.exec(attrsPart))) attrs[m[1].toLowerCase()] = m[2];
+        cur = { name: titlePart || attrs['tvg-name'] || '', logo: attrs['tvg-logo'] || attrs['tvg-logo-small'] || null, group: attrs['group-title'] || null };
+        continue;
+      }
+      if (line.startsWith('#')) continue;
+      const url = line;
+      const name = (cur && cur.name) || urlToName(url);
+      const rawLogo = (cur && cur.logo) || null;
+      const embeddedLogo = rawLogo && /^https?:\/\//i.test(rawLogo) ? rawLogo : null;
+      out.push({ id: hashString(url), name, url, logo: embeddedLogo, group: (cur && cur.group) || null, favorite: false, logoChecked: !!embeddedLogo, logoSource: embeddedLogo ? 'embedded' : 'none' });
+      cur = null;
+    }
+    return out;
+  }
+
+  // ---------- cover art lookup ----------
+  const RB_HOSTS = ['de1.api.radio-browser.info','de2.api.radio-browser.info','nl1.api.radio-browser.info','at1.api.radio-browser.info'];
+  async function lookupRadioBrowserLogo(station) {
+    const targetHost = hostnameOf(station.url);
+    const q = encodeURIComponent(station.name.trim());
+    if (!q) return null;
+    for (const host of RB_HOSTS) {
+      try {
+        const resp = await fetch(`https://${host}/json/stations/byname/${q}?limit=8&hidebroken=true`);
+        if (!resp.ok) continue;
+        const data = await resp.json();
+        if (!Array.isArray(data) || !data.length) return null;
+        let match = data.find(d => { const h1=hostnameOf(d.url||''), h2=hostnameOf(d.url_resolved||''); return targetHost && (h1===targetHost||h2===targetHost); });
+        if (!match) match = data.find(d => (d.name||'').trim().toLowerCase() === station.name.trim().toLowerCase());
+        if (match && match.favicon && /^https?:\/\//i.test(match.favicon)) return match.favicon;
+        return null;
+      } catch { continue; }
+    }
+    return null;
+  }
+  function faviconFallbackUrl(streamUrl) {
+    const host = hostnameOf(streamUrl);
+    return host ? `https://www.google.com/s2/favicons?sz=128&domain=${host}` : null;
+  }
+  let logoQueueRunning = false;
+  async function processLogoQueue() {
+    if (logoQueueRunning) return;
+    const pending = stations.filter(s => !s.logoChecked);
+    if (!pending.length) return;
+    logoQueueRunning = true;
+    for (const station of pending) {
+      let logo = null, source = 'none';
+      try { logo = await lookupRadioBrowserLogo(station); if (logo) source = 'radio-browser'; } catch {}
+      if (!logo) { logo = faviconFallbackUrl(station.url); source = logo ? 'favicon' : 'none'; }
+      const idx = stations.findIndex(s => s.id === station.id);
+      if (idx !== -1) { stations[idx] = { ...stations[idx], logo: logo || stations[idx].logo, logoChecked: true, logoSource: source }; persistAndMaybeRender(false); }
+      await new Promise(r => setTimeout(r, 120));
+    }
+    logoQueueRunning = false;
+  }
+
+  function persistAndMaybeRender(rerender) {
+    saveStations(stations);
+    if (rerender !== false) renderLibrary();
+    else renderLibrary(); // logo updates need to repaint art too; cheap enough at this scale
+  }
+
+  // ---------- DOM refs ----------
+  const $ = id => document.getElementById(id);
+  const importBtn = $('importBtn'), emptyImportBtn = $('emptyImportBtn'), fileInput = $('fileInput'), logoFileInput = $('logoFileInput');
+  const clearBtn = $('clearBtn'), searchInput = $('searchInput'), genreFilterEl = $('genreFilter');
+  const stationCountEl = $('stationCount'), importMsgEl = $('importMsg');
+  const emptyState = $('emptyState'), stationGrid = $('stationGrid'), noMatch = $('noMatch');
+  const player = $('player'), playerArt = $('playerArt'), playerName = $('playerName'), playerStatus = $('playerStatus');
+  const eqEl = $('eq'), playBtn = $('playBtn'), playIcon = $('playIcon'), muteBtn = $('muteBtn'), volIcon = $('volIcon');
+  const volumeSlider = $('volumeSlider'), stopBtn = $('stopBtn'), audio = $('audio');
+  const identifyBtn = $('identifyBtn');
+  const settingsBtn = $('settingsBtn'), settingsModal = $('settingsModal'), closeSettings = $('closeSettings');
+  const auddTokenInput = $('auddToken'), saveSettingsBtn = $('saveSettings');
+  const resultModal = $('resultModal'), closeResult = $('closeResult'), resultArt = $('resultArt'), resultArtWrap = $('resultArtWrap');
+  const resultTitle = $('resultTitle'), resultArtist = $('resultArtist'), resultDismiss = $('resultDismiss'), resultHeart = $('resultHeart');
+  const toastEl = $('toast');
+  const likedView = $('likedView'), likedEmpty = $('likedEmpty'), likedGrid = $('likedGrid'), likedCountEl = $('likedCount');
+  const libraryView = $('libraryView'), libraryToolbar = $('libraryToolbar');
+  const tabs = document.querySelectorAll('.tab');
+
+  let muted = false, volume = 0.8;
+  let pendingIdentifyResult = null;
+  let toastTimer = null;
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.add('hidden'), 3500);
+  }
+
+  // ---------- rendering: library ----------
+  function coverHtml(station, sizeClass) {
+    const failed = imgErrors.has(station.id);
+    if (station.logo && !failed) {
+      return `<img class="art ${sizeClass||''}" src="${escapeHtml(station.logo)}" alt="" loading="lazy" onerror="window.__wlImgError('${station.id}')" />`;
+    }
+    return `<div class="avatar ${sizeClass||''}" style="background:${avatarColor(station.id)}">${initials(station.name)}</div>`;
+  }
+
+  window.__wlImgError = function(id) { imgErrors.add(id); renderLibrary(); renderPlayer(); };
+
+  function getFiltered() {
+    return stations.filter(s => {
+      if (genreFilter !== 'All' && s.group !== genreFilter) return false;
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        return s.name.toLowerCase().includes(q) || (s.group||'').toLowerCase().includes(q);
+      }
+      return true;
+    }).sort((a,b) => { if (a.favorite !== b.favorite) return a.favorite ? -1 : 1; return a.name.localeCompare(b.name); });
+  }
+
+  function renderGenreOptions() {
+    const groups = Array.from(new Set(stations.map(s => s.group).filter(Boolean))).sort();
+    const prevVal = genreFilterEl.value;
+    genreFilterEl.innerHTML = '<option value="All">All genres</option>' + groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+    genreFilterEl.value = groups.includes(prevVal) ? prevVal : 'All';
+  }
+
+  function renderLibrary() {
+    clearBtn.classList.toggle('hidden', stations.length === 0);
+    libraryToolbar.classList.toggle('hidden', stations.length === 0);
+    renderGenreOptions();
+    const filtered = getFiltered();
+    stationCountEl.textContent = stations.length ? `${filtered.length} / ${stations.length} stations` : '';
+
+    if (stations.length === 0) {
+      emptyState.classList.remove('hidden'); stationGrid.classList.add('hidden'); noMatch.classList.add('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+    if (filtered.length === 0) {
+      stationGrid.classList.add('hidden'); noMatch.classList.remove('hidden');
+      return;
+    }
+    noMatch.classList.add('hidden'); stationGrid.classList.remove('hidden');
+
+    stationGrid.innerHTML = filtered.map(s => {
+      const isCurrent = current && current.id === s.id;
+      const pulsing = !s.logoChecked;
+      const showRetry = s.logoChecked && s.logoSource !== 'embedded' && s.logoSource !== 'radio-browser' && s.logoSource !== 'custom';
+      const playIconSvg = isCurrent && isLoadingStream
+        ? `<svg class="icon" style="width:26px;height:26px;color:var(--amber);animation:spin 1s linear infinite" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`
+        : (isCurrent && isPlaying
+          ? `<svg class="icon icon-fill" style="width:26px;height:26px;color:var(--amber)" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+          : `<svg class="icon icon-fill" style="width:26px;height:26px;color:#fff" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>`);
+      return `
+      <div class="card ${isCurrent?'current':''}" data-id="${s.id}">
+        <button class="art-button" data-action="select" data-id="${s.id}" style="all:unset; cursor:pointer; display:block; width:100%;">
+          <div class="art-wrap ${pulsing?'pulsing':''}">${coverHtml(s)}<div class="play-overlay">${playIconSvg}</div></div>
+          <div class="card-body">
+            <div class="card-name">${escapeHtml(s.name)}</div>
+            ${s.group ? `<div class="card-group">${escapeHtml(s.group)}</div>` : '<div class="card-group">&nbsp;</div>'}
+          </div>
+        </button>
+        <button class="card-btn fav ${s.favorite?'fav-on':''}" data-action="fav" data-id="${s.id}" title="Favorite">
+          <svg class="icon ${s.favorite?'icon-fill':''}" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <button class="card-btn remove" data-action="remove" data-id="${s.id}" title="Remove">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+        ${showRetry ? `<button class="card-btn retry" data-action="retry" data-id="${s.id}" title="Look for cover art again"><svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>` : ''}
+        <button class="card-btn upload-logo" data-action="upload-logo" data-id="${s.id}" title="Upload a custom cover">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+  }
+
+  // ---------- rendering: liked songs ----------
+  function renderLiked() {
+    likedCountEl.textContent = liked.length ? `(${liked.length})` : '';
+    if (!liked.length) { likedEmpty.classList.remove('hidden'); likedGrid.classList.add('hidden'); return; }
+    likedEmpty.classList.add('hidden'); likedGrid.classList.remove('hidden');
+    likedGrid.innerHTML = liked.slice().reverse().map(item => `
+      <div class="liked-card">
+        ${songCoverHtml(item, 'width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0;')}
+        <div class="liked-info">
+          <div class="liked-title">${escapeHtml(item.title)}</div>
+          <div class="liked-artist">${escapeHtml(item.artist)}</div>
+          <div class="liked-meta">${escapeHtml(item.station || '')}</div>
+        </div>
+        <button class="liked-remove" data-action="unlike" data-id="${item.id}" title="Remove">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  // ---------- player ----------
+  function renderPlayer() {
+    if (!current) { player.classList.add('hidden'); return; }
+    player.classList.remove('hidden');
+    playerArt.innerHTML = coverHtml(current);
+    playerName.textContent = current.name;
+    if (streamError) { playerStatus.textContent = streamError; playerStatus.classList.add('error'); }
+    else { playerStatus.classList.remove('error'); playerStatus.textContent = isLoadingStream ? 'Tuning in…' : (current.group || 'On air'); }
+    eqEl.classList.toggle('hidden', !(isPlaying && !streamError));
+    playBtn.disabled = !!streamError;
+    if (isLoadingStream && !streamError) {
+      playIcon.outerHTML = `<svg class="icon" id="playIcon" style="animation:spin 1s linear infinite" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+    } else if (isPlaying) {
+      playIcon.outerHTML = `<svg class="icon icon-fill" id="playIcon" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+    } else {
+      playIcon.outerHTML = `<svg class="icon icon-fill" id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+    }
+    window.playIcon = $('playIcon');
+  }
+
+  function selectStation(station) {
+    if (current && current.id === station.id) { togglePlay(); return; }
+    current = station;
+    streamError = null;
+    isLoadingStream = true;
+    audio.src = station.url;
+    audio.volume = muted ? 0 : volume;
+    audio.play().catch(() => {});
+    renderPlayer(); renderLibrary();
+  }
+  function togglePlay() {
+    if (!current) return;
+    if (isPlaying) audio.pause();
+    else { isLoadingStream = true; audio.play().catch(() => {}); renderPlayer(); }
+  }
+  function stopPlayback() {
+    audio.pause(); audio.removeAttribute('src'); audio.load();
+    current = null; isPlaying = false; streamError = null;
+    renderPlayer(); renderLibrary();
+  }
+
+  audio.addEventListener('playing', () => { isPlaying = true; isLoadingStream = false; renderPlayer(); renderLibrary(); });
+  audio.addEventListener('waiting', () => { isLoadingStream = true; renderPlayer(); });
+  audio.addEventListener('canplay', () => { isLoadingStream = false; renderPlayer(); });
+  audio.addEventListener('pause', () => { isPlaying = false; renderPlayer(); renderLibrary(); });
+  audio.addEventListener('error', () => { streamError = "Couldn't tune in. The stream didn't respond."; isPlaying = false; isLoadingStream = false; renderPlayer(); renderLibrary(); });
+
+  // ---------- import ----------
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.onerror = reject; r.readAsText(file); });
+  }
+  async function handleFiles(fileList) {
+    const all = Array.from(fileList || []);
+    const files = all.filter(f => /\.(m3u8?|txt)$/i.test(f.name));
+    if (!files.length) { showImportMsg('No M3U files found in your selection.'); return; }
+    try {
+      const texts = await Promise.all(files.map(readFileAsText));
+      let parsedAll = [];
+      texts.forEach(t => { parsedAll = parsedAll.concat(parseM3U(t)); });
+      const existingUrls = new Set(stations.map(s => s.url));
+      const seen = new Set(); const fresh = [];
+      parsedAll.forEach(s => { if (existingUrls.has(s.url) || seen.has(s.url)) return; seen.add(s.url); fresh.push(s); });
+      const skipped = parsedAll.length - fresh.length;
+      stations = stations.concat(fresh);
+      saveStations(stations);
+      renderLibrary();
+      showImportMsg(`Added ${fresh.length} station${fresh.length===1?'':'s'}${skipped>0?` — ${skipped} already in your library`:''}.`);
+      processLogoQueue();
+    } catch (e) { showImportMsg("Couldn't read that file."); }
+  }
+  function showImportMsg(msg) {
+    importMsgEl.textContent = msg; importMsgEl.classList.remove('hidden');
+    clearTimeout(showImportMsg._t);
+    showImportMsg._t = setTimeout(() => importMsgEl.classList.add('hidden'), 4000);
+  }
+
+  // ---------- events: import / library controls ----------
+  importBtn.onclick = () => fileInput.click();
+  emptyImportBtn.onclick = () => fileInput.click();
+  fileInput.onchange = e => { handleFiles(e.target.files); e.target.value = ''; };
+  searchInput.oninput = e => { search = e.target.value; renderLibrary(); };
+  genreFilterEl.onchange = e => { genreFilter = e.target.value; renderLibrary(); };
+  clearBtn.onclick = () => {
+    if (confirmClear) { stations = []; saveStations(stations); stopPlayback(); confirmClear = false; clearBtn.textContent = 'Clear library'; renderLibrary(); }
+    else { confirmClear = true; clearBtn.textContent = 'Confirm clear?'; clearBtn.style.borderColor = 'var(--rose)'; clearBtn.style.color = 'var(--rose)';
+      setTimeout(() => { confirmClear = false; clearBtn.textContent = 'Clear library'; clearBtn.style.borderColor=''; clearBtn.style.color=''; }, 3000); }
+  };
+
+  ['dragover','dragleave','drop'].forEach(evt => {
+    document.body.addEventListener(evt, e => {
+      if (evt === 'dragover') e.preventDefault();
+      if (evt === 'drop') { e.preventDefault(); if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); }
+    });
+  });
+
+  stationGrid.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const station = stations.find(s => s.id === id);
+    if (!station) return;
+    const action = btn.dataset.action;
+    if (action === 'select') selectStation(station);
+    else if (action === 'fav') { station.favorite = !station.favorite; saveStations(stations); renderLibrary(); }
+    else if (action === 'remove') { stations = stations.filter(s => s.id !== id); saveStations(stations); if (current && current.id === id) stopPlayback(); renderLibrary(); }
+    else if (action === 'retry') { station.logoChecked = false; saveStations(stations); renderLibrary(); processLogoQueue(); }
+    else if (action === 'upload-logo') { pendingLogoStationId = id; logoFileInput.click(); }
+  });
+
+  let pendingLogoStationId = null;
+  logoFileInput.onchange = e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file || !pendingLogoStationId) return;
+    if (!file.type.startsWith('image/')) { showToast('Please choose an image file.'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const station = stations.find(s => s.id === pendingLogoStationId);
+      if (station) {
+        station.logo = ev.target.result; // data URL, stored locally
+        station.logoChecked = true;
+        station.logoSource = 'custom';
+        imgErrors.delete(station.id);
+        saveStations(stations);
+        renderLibrary();
+        renderPlayer();
+        showToast('Cover updated.');
+      }
+      pendingLogoStationId = null;
+    };
+    reader.onerror = () => { showToast("Couldn't read that image."); pendingLogoStationId = null; };
+    reader.readAsDataURL(file);
+  };
+
+  likedGrid.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action="unlike"]');
+    if (!btn) return;
+    liked = liked.filter(l => l.id !== btn.dataset.id);
+    saveLiked(liked); renderLiked();
+  });
+
+  // ---------- tabs ----------
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab = t.dataset.tab;
+    libraryView.classList.toggle('hidden', activeTab !== 'library');
+    likedView.classList.toggle('hidden', activeTab !== 'liked');
+    libraryToolbar.classList.toggle('hidden', activeTab !== 'library' || stations.length === 0);
+  }));
+
+  // ---------- player controls ----------
+  playBtn.onclick = togglePlay;
+  stopBtn.onclick = stopPlayback;
+  muteBtn.onclick = () => { muted = !muted; audio.volume = muted ? 0 : volume; volIcon.innerHTML = muted ? '<line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>' : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>'; };
+  volumeSlider.oninput = e => { volume = parseFloat(e.target.value); muted = false; audio.volume = volume; };
+
+  // ---------- settings modal ----------
+  settingsBtn.onclick = () => { auddTokenInput.value = loadToken(); settingsModal.classList.remove('hidden'); };
+  closeSettings.onclick = () => settingsModal.classList.add('hidden');
+  saveSettingsBtn.onclick = () => { saveToken(auddTokenInput.value.trim()); settingsModal.classList.add('hidden'); showToast('Saved.'); };
+
+  const exportBtn = $('exportBtn'), importBackupBtn = $('importBackupBtn'), backupFileInput = $('backupFileInput');
+  exportBtn.onclick = () => {
+    const payload = { version: 1, exportedAt: new Date().toISOString(), stations, liked };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `wavelength-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Backup downloaded.');
+  };
+  importBackupBtn.onclick = () => backupFileInput.click();
+  backupFileInput.onchange = async e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      if (!Array.isArray(payload.stations) || !Array.isArray(payload.liked)) throw new Error('bad shape');
+      stations = payload.stations;
+      liked = payload.liked;
+      saveStations(stations); saveLiked(liked);
+      renderLibrary(); renderLiked();
+      settingsModal.classList.add('hidden');
+      showToast(`Restored ${stations.length} stations and ${liked.length} liked songs.`);
+    } catch (e) { showToast("That doesn't look like a Radio James backup file."); }
+  };
+
+  // ---------- song identification ----------
+  closeResult.onclick = resultDismiss.onclick = () => resultModal.classList.add('hidden');
+  resultHeart.onclick = () => {
+    if (!pendingIdentifyResult) return;
+    liked.push(pendingIdentifyResult);
+    saveLiked(liked);
+    renderLiked();
+    resultModal.classList.add('hidden');
+    showToast('Added to Liked Songs.');
+  };
+
+  async function identifySong() {
+    if (!current || isIdentifying) return;
+    const token = loadToken();
+    if (!token) { settingsModal.classList.remove('hidden'); showToast('Add an AudD.io API token first.'); return; }
+
+    isIdentifying = true;
+    identifyBtn.classList.add('listening');
+    showToast('Listening for a few seconds…');
+
+    let blob = null;
+    let usedMethod = null;
+    try {
+      blob = await captureFromDirectFetch(8000);
+      usedMethod = 'direct';
+    } catch (e1) {
+      try {
+        blob = await captureFromStream(8000);
+        usedMethod = 'webaudio';
+      } catch (e2) {
+        showToast("This station's server blocks direct capture — listening through your mic instead.");
+        try {
+          blob = await captureFromMic(8000);
+          usedMethod = 'mic';
+        } catch (e3) {
+          isIdentifying = false; identifyBtn.classList.remove('listening');
+          showToast("Couldn't capture audio any way — check mic permissions or try again.");
+          return;
+        }
+      }
+    }
+
+    try {
+      const form = new FormData();
+      form.append('api_token', token);
+      form.append('file', blob, usedMethod === 'direct' ? 'clip.mp3' : 'clip.webm');
+      form.append('return', 'apple_music,spotify');
+      const resp = await fetch('https://api.audd.io/', { method: 'POST', body: form });
+      const data = await resp.json();
+      isIdentifying = false; identifyBtn.classList.remove('listening');
+      if (data.status === 'success' && data.result) {
+        const r = data.result;
+        const artwork = (r.apple_music && r.apple_music.artwork && r.apple_music.artwork.url
+          ? r.apple_music.artwork.url.replace('{w}','300').replace('{h}','300')
+          : (r.spotify && r.spotify.album && r.spotify.album.images && r.spotify.album.images[0] ? r.spotify.album.images[0].url : ''));
+        pendingIdentifyResult = {
+          id: 'lk_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+          title: r.title || 'Unknown title',
+          artist: r.artist || 'Unknown artist',
+          artwork, station: current.name, identifiedAt: new Date().toISOString()
+        };
+        resultTitle.textContent = pendingIdentifyResult.title;
+        resultArtist.textContent = pendingIdentifyResult.artist;
+        resultArtWrap.innerHTML = songCoverHtml(pendingIdentifyResult, 'width:100%;aspect-ratio:1;border-radius:10px;object-fit:cover;background:var(--panel2);margin-bottom:14px;');
+        resultModal.classList.remove('hidden');
+      } else if (data.status === 'error' && data.error) {
+        showToast(`AudD error: ${data.error.error_message || 'request rejected'} (code ${data.error.error_code})`);
+      } else {
+        showToast(`No match for that clip (captured via ${usedMethod === 'direct' ? 'direct stream' : usedMethod === 'webaudio' ? 'stream audio' : 'microphone'}). Try again during a clearer part of the song.`);
+      }
+    } catch (e) {
+      isIdentifying = false; identifyBtn.classList.remove('listening');
+      showToast('Identification request failed.');
+    }
+  }
+  identifyBtn.onclick = identifySong;
+
+  function recordBlob(stream, ms) {
+    return new Promise((resolve, reject) => {
+      let recorder;
+      try { recorder = new MediaRecorder(stream); } catch (e) { reject(e); return; }
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => resolve(new Blob(chunks, { type: 'audio/webm' }));
+      recorder.onerror = e => reject(e.error || e);
+      recorder.start();
+      setTimeout(() => { if (recorder.state !== 'inactive') recorder.stop(); }, ms);
+    });
+  }
+
+  // Reads raw bytes straight off the stream URL via fetch — no <audio> element,
+  // no Web Audio graph, no microphone. Works whenever the radio server allows
+  // cross-origin GET requests (many open Icecast/Shoutcast streams do), and is
+  // the only method that works reliably when you're on headphones, since it
+  // never depends on sound actually reaching a microphone.
+  async function captureFromDirectFetch(ms) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    let resp;
+    try {
+      resp = await fetch(current.url, { signal: controller.signal, mode: 'cors' });
+    } catch (e) {
+      clearTimeout(timer);
+      throw e;
+    }
+    if (!resp.ok || !resp.body) { clearTimeout(timer); throw new Error('no body'); }
+    const reader = resp.body.getReader();
+    const chunks = [];
+    let total = 0;
+    const maxBytes = 400000; // plenty for a clip; also capped by the timeout below
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) { chunks.push(value); total += value.length; }
+        if (total >= maxBytes) break;
+      }
+    } catch (e) {
+      // expected when the timeout aborts the read — keep whatever we collected
+    }
+    clearTimeout(timer);
+    try { reader.cancel(); } catch (e) {}
+    if (total < 20000) throw new Error('insufficient audio data');
+    return new Blob(chunks, { type: 'audio/mpeg' });
+  }
+
+  let audioCtx = null, sourceNode = null, destNode = null;
+  async function captureFromStream(ms) {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    if (!sourceNode) {
+      sourceNode = audioCtx.createMediaElementSource(audio);
+      destNode = audioCtx.createMediaStreamDestination();
+      sourceNode.connect(destNode);
+      sourceNode.connect(audioCtx.destination);
+    }
+    // Many radio servers don't send CORS headers, which silently mutes
+    // anything captured via Web Audio (the browser zeroes the signal as a
+    // security measure). Probe for actual signal first so we don't waste
+    // a 6-second recording — and an API call — on dead silence.
+    const hasSignal = await probeForSignal(destNode.stream, 400);
+    if (!hasSignal) throw new Error('stream-silent');
+    return recordBlob(destNode.stream, ms);
+  }
+  function probeForSignal(stream, ms) {
+    return new Promise(resolve => {
+      try {
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 1024;
+        const probeSource = audioCtx.createMediaStreamSource(stream);
+        probeSource.connect(analyser);
+        const data = new Uint8Array(analyser.fftSize);
+        let maxDeviation = 0;
+        const start = Date.now();
+        function tick() {
+          analyser.getByteTimeDomainData(data);
+          for (let i = 0; i < data.length; i++) {
+            const dev = Math.abs(data[i] - 128);
+            if (dev > maxDeviation) maxDeviation = dev;
+          }
+          if (Date.now() - start < ms) requestAnimationFrame(tick);
+          else { probeSource.disconnect(); resolve(maxDeviation > 2); }
+        }
+        tick();
+      } catch (e) { resolve(false); }
+    });
+  }
+  async function captureFromMic(ms) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    try { return await recordBlob(stream, ms); } finally { stream.getTracks().forEach(t => t.stop()); }
+  }
+
+  // spin keyframes (inserted once, used by inline play/loading icons)
+  const styleTag = document.createElement('style');
+  styleTag.textContent = '@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }';
+  document.head.appendChild(styleTag);
+
+  // ---------- init ----------
+  renderLibrary();
+  renderLiked();
+  renderPlayer();
+  processLogoQueue();
+})();
+</script>
+</body>
+</html>

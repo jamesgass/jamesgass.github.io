@@ -2,8 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Radio James</title>
+
+<!-- Home-screen icon + standalone-app behavior for "Add to Home Screen" on iOS -->
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+<link rel="icon" sizes="32x32" href="favicon-32.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wavelength">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#09090b">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
   :root {
     --bg: #09090b; --panel: #18181b; --panel2: #27272a; --border: #3f3f46;
@@ -135,6 +149,10 @@
         <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Import M3U
       </button>
+      <button class="btn btn-ghost" id="addStationBtn">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add station
+      </button>
       <input type="file" id="fileInput" accept=".m3u,.m3u8,.txt" multiple class="hidden" />
       <input type="file" id="logoFileInput" accept="image/*" class="hidden" />
       <button class="btn-icon" id="settingsBtn" title="Song ID settings">
@@ -211,6 +229,27 @@
 
 <audio id="audio" crossorigin="anonymous"></audio>
 
+<div class="modal-bg hidden" id="addStationModal">
+  <div class="modal">
+    <button class="btn-icon close" id="closeAddStation"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <h2>Add a station</h2>
+    <div class="settings-field">
+      <label>Station name</label>
+      <input type="text" id="newStationName" placeholder="e.g. FBi Radio 94.5FM" />
+    </div>
+    <div class="settings-field">
+      <label>Stream URL</label>
+      <input type="text" id="newStationUrl" placeholder="https://stream.example.com/listen" />
+    </div>
+    <div class="settings-field">
+      <label>Genre / group (optional)</label>
+      <input type="text" id="newStationGroup" placeholder="e.g. Jazz" />
+    </div>
+    <p class="settings-help" id="addStationError" style="color:var(--rose); display:none;"></p>
+    <button class="btn btn-amber" id="submitAddStation" style="width:100%; justify-content:center; margin-top:4px;">Add to library</button>
+  </div>
+</div>
+
 <div class="modal-bg hidden" id="settingsModal">
   <div class="modal">
     <button class="btn-icon close" id="closeSettings"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -223,6 +262,12 @@
       Song identification uses <a href="https://audd.io" target="_blank">AudD.io</a>'s recognition API. Create a free account there to get an API token (free tier includes a trial quota of requests). Paste it above — it's stored only in your browser.
     </p>
     <button class="btn btn-amber" id="saveSettings" style="width:100%; justify-content:center; margin-top:6px;">Save</button>
+    <hr style="border:none; border-top:1px solid var(--border); margin:18px 0;" />
+    <div class="settings-field">
+      <label>Export your playlist</label>
+      <p class="settings-help" style="margin-top:0;">Every station in your library — imported, fetched, or added by hand — can be exported as a standard M3U file to reuse elsewhere.</p>
+      <button class="btn btn-ghost" id="exportM3uBtn" style="width:100%; justify-content:center; margin-top:8px;">Export M3U</button>
+    </div>
     <hr style="border:none; border-top:1px solid var(--border); margin:18px 0;" />
     <div class="settings-field">
       <label>Backup your library</label>
@@ -402,6 +447,10 @@
   const identifyBtn = $('identifyBtn');
   const settingsBtn = $('settingsBtn'), settingsModal = $('settingsModal'), closeSettings = $('closeSettings');
   const auddTokenInput = $('auddToken'), saveSettingsBtn = $('saveSettings');
+  const addStationBtn = $('addStationBtn'), addStationModal = $('addStationModal'), closeAddStation = $('closeAddStation');
+  const newStationName = $('newStationName'), newStationUrl = $('newStationUrl'), newStationGroup = $('newStationGroup');
+  const addStationError = $('addStationError'), submitAddStation = $('submitAddStation');
+  const exportM3uBtn = $('exportM3uBtn');
   const resultModal = $('resultModal'), closeResult = $('closeResult'), resultArt = $('resultArt'), resultArtWrap = $('resultArtWrap');
   const resultTitle = $('resultTitle'), resultArtist = $('resultArtist'), resultDismiss = $('resultDismiss'), resultHeart = $('resultHeart');
   const toastEl = $('toast');
@@ -708,6 +757,57 @@
       showToast(`Restored ${stations.length} stations and ${liked.length} liked songs.`);
     } catch (e) { showToast("That doesn't look like a Radio James backup file."); }
   };
+
+  // ---------- M3U export ----------
+  function stationsToM3U(list) {
+    const lines = ['#EXTM3U'];
+    list.forEach(s => {
+      const attrs = [];
+      if (s.group) attrs.push(`group-title="${s.group.replace(/"/g,"'")}"`);
+      // Data-URL (custom uploaded) logos are skipped — they'd blow the file up and
+      // aren't valid in standard M3U tooling anyway. Real http(s) logos are kept.
+      if (s.logo && /^https?:\/\//i.test(s.logo)) attrs.push(`tvg-logo="${s.logo.replace(/"/g,"'")}"`);
+      const attrStr = attrs.length ? ' ' + attrs.join(' ') : '';
+      lines.push(`#EXTINF:-1${attrStr},${s.name}`);
+      lines.push(s.url);
+    });
+    return lines.join('\n') + '\n';
+  }
+  exportM3uBtn.onclick = () => {
+    if (!stations.length) { showToast('Your library is empty.'); return; }
+    const text = stationsToM3U(stations);
+    const blob = new Blob([text], { type: 'audio/x-mpegurl' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `wavelength-stations-${new Date().toISOString().slice(0,10)}.m3u`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showToast('M3U exported.');
+  };
+
+  // ---------- add a single station manually ----------
+  addStationBtn.onclick = () => {
+    newStationName.value = ''; newStationUrl.value = ''; newStationGroup.value = '';
+    addStationError.style.display = 'none';
+    addStationModal.classList.remove('hidden');
+  };
+  closeAddStation.onclick = () => addStationModal.classList.add('hidden');
+  submitAddStation.onclick = () => {
+    const name = newStationName.value.trim();
+    const url = newStationUrl.value.trim();
+    const group = newStationGroup.value.trim();
+    if (!name) { showAddStationError('Give the station a name.'); return; }
+    if (!/^https?:\/\/.+/i.test(url)) { showAddStationError('Stream URL needs to start with http:// or https://'); return; }
+    if (stations.some(s => s.url === url)) { showAddStationError('That stream URL is already in your library.'); return; }
+    const station = { id: hashString(url), name, url, logo: null, group: group || null, favorite: false, logoChecked: false, logoSource: 'none' };
+    stations.push(station);
+    saveStations(stations);
+    renderLibrary();
+    processLogoQueue();
+    addStationModal.classList.add('hidden');
+    showToast(`Added "${name}" to your library.`);
+  };
+  function showAddStationError(msg) { addStationError.textContent = msg; addStationError.style.display = 'block'; }
 
   // ---------- song identification ----------
   closeResult.onclick = resultDismiss.onclick = () => resultModal.classList.add('hidden');
